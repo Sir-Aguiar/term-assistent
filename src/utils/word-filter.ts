@@ -1,6 +1,4 @@
-import { keyInSelect, question, questionInt } from "readline-sync";
 import { words as wordsDB } from "../../words.json";
-
 /*
   Fazer extensão que lê e interpreta o HTML da página filtrando as possibilidades
 */
@@ -12,32 +10,44 @@ import { words as wordsDB } from "../../words.json";
     - Letra X não existe na palavra; notContains()
 */
 
-/* 
-  Inserir um input
-    - Quais posições ficaram verdes: 
-    - Quais posições ficaram amarelas:
-*/
+interface IHaveNotAt {
+  letter: string;
+  position: number[];
+}
+interface IHaveAt {
+  letter: string;
+  position: number;
+}
 
-const containsAt = (letter: string[], position: number[], words = wordsDB) => {
+const containsAt = (data: IHaveAt[], words = wordsDB) => {
   let avaliableWords = words;
-
-  letter.forEach((wordLetter, index) => {
-    avaliableWords = avaliableWords.filter((word) => {
-      return word[position[index] - 1] == wordLetter.toLowerCase();
-    });
+  /* [
+  { letter: 's', position: 1 },    
+  { letter: 'a', position: 2 },    
+  { letter: 'o', position: 5 }     
+] */
+  avaliableWords = avaliableWords.filter((word) => {
+    for (const hint of data) {
+      if (word[hint.position - 1].toLowerCase() !== hint.letter.toLowerCase()) return false;
+    }
+    return true;
   });
-
   return avaliableWords;
 };
 
-const containsNotAt = (letters: string[], positions: number[][], words = wordsDB) => {
-  // ["T"], [[1]]
+const containsNotAt = (data: IHaveNotAt[], words = wordsDB) => {
+  /* 
+  [
+  { letter: 'o', position: [ 2 ] },
+  { letter: 'a', position: [ 5 ] },
+  { letter: 'b', position: [ 4 ] }
+]
+  */
   let avaliableWords = words;
-  letters.forEach((letter, index) => {
-    const lowerLetter = letter.toLowerCase();
-    positions[index].forEach((position) => {
+  data.forEach((hint) => {
+    hint.position.forEach((hintPosition) => {
       avaliableWords = avaliableWords.filter((word) => {
-        return word.includes(lowerLetter) && !(word[position - 1] == lowerLetter);
+        return word[hintPosition - 1] != hint.letter && word.includes(hint.letter);
       });
     });
   });
@@ -51,44 +61,4 @@ const notContains = (letters: string[], words = wordsDB) => {
   return words.filter((word) => regex.test(word));
 };
 
-let options = [
-  "Letra X na posição X",
-  "Letra X não pertence a posição X",
-  "Letra X não existe na palavra",
-  "Mostrar palavras possíveis",
-];
-let choice = keyInSelect(options, "insira o filtro que deseja inserir: ");
-let myWords = wordsDB;
-while (choice != -1) {
-  if (choice == 0) {
-    let letters = question("Insira as letras que você já sabe a posição (seprados por vírgula): ").split(",");
-    let positions = question("Insira agora as respectivas posições de cada letra (separadas por vírgula): ")
-      .split(",")
-      .map((value) => parseInt(value));
-    myWords = containsAt(letters, positions, myWords);
-  }
-
-  if (choice == 1) {
-    const letters = question("Quais são as letras que você conhece: ").split(",");
-    const positions: number[][] = [];
-    letters.forEach((letter) => {
-      positions.push(
-        question(`Quais as posições você sabe que o ${letter} está: `)
-          .split(",")
-          .map((value) => parseInt(value)),
-      );
-    });
-    myWords = containsNotAt(letters, positions, myWords);
-  }
-  if (choice == 2) {
-    const letters = question("Quais são as letras que a palavra não possui: ").split(",");
-    myWords = notContains(letters, myWords);
-  }
-  if (choice == 3) {
-    myWords.forEach((word) => {
-      console.log(`${word}`);
-    });
-  }
-
-  choice = keyInSelect(options, "Insira o filtro que deseja inserir: ");
-}
+export { containsAt, containsNotAt, notContains };

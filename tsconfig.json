@@ -11,7 +11,8 @@
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
-		"moduleResolution": "Node"
+		"moduleResolution": "Node",
+		"outDir": "build"
 	},
 	"include": ["src/**/*.ts"]
 }
